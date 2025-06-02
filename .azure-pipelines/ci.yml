@@ -1,0 +1,25 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+- job: Build
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '16.x'
+  - script: |
+      cd frontend
+      npm install
+      npm run build
+    displayName: 'Build Frontend'
+
+  - task: Maven@3
+    inputs:
+      mavenPomFile: 'backend/pom.xml'
+      goals: 'clean install'
+    displayName: 'Build Backend'

@@ -1,0 +1,35 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  azureSubscription: 'your-service-connection-name'
+  webAppName: 'ecomm-app'
+
+stages:
+- stage: DeployInfra
+  jobs:
+  - job: Terraform
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: 'latest'
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: 'infra'
+        environmentServiceNameAzureRM: '$(azureSubscription)'
+
+- stage: DeployApp
+  dependsOn: DeployInfra
+  jobs:
+  - job: DeployBackend
+    steps:
+    - task: AzureWebApp@1
+      inputs:
+        azureSubscription: '$(azureSubscription)'
+        appType: 'webApp'
+        appName: '$(webAppName)'
+        package: 'backend/target/*.jar'
